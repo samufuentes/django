@@ -301,23 +301,30 @@ class DecimalField(Field):
         if value != value or value == Decimal("Inf") or value == Decimal("-Inf"):
             raise ValidationError(self.error_messages['invalid'])
         sign, digittuple, exponent = value.as_tuple()
-        decimals = abs(exponent)
-        # digittuple doesn't include any leading zeros.
-        digits = len(digittuple)
-        if decimals > digits:
-            # We have leading zeros up to or past the decimal point.  Count
-            # everything past the decimal point as a digit.  We do not count
-            # 0 before the decimal point as a digit since that would mean
-            # we would not allow max_digits = decimal_places.
-            digits = decimals
-        whole_digits = digits - decimals
+        if exponent < 0:
+            decimals = abs(exponent)
+            # digittuple doesn't include any leading zeros.
+            digits = len(digittuple)
+            if decimals > digits:
+                # We have leading zeros up to or past the decimal point.  Count
+                # everything past the decimal point as a digit.  We do not count
+                # 0 before the decimal point as a digit since that would mean
+                # we would not allow max_digits = decimal_places.
+                digits = decimals
+            whole_digits = digits - decimals
 
-        if self.max_digits is not None and digits > self.max_digits:
-            raise ValidationError(self.error_messages['max_digits'] % self.max_digits)
-        if self.decimal_places is not None and decimals > self.decimal_places:
-            raise ValidationError(self.error_messages['max_decimal_places'] % self.decimal_places)
-        if self.max_digits is not None and self.decimal_places is not None and whole_digits > (self.max_digits - self.decimal_places):
-            raise ValidationError(self.error_messages['max_whole_digits'] % (self.max_digits - self.decimal_places))
+            if self.max_digits is not None and digits > self.max_digits:
+                raise ValidationError(self.error_messages['max_digits'] % self.max_digits)
+            if self.decimal_places is not None and decimals > self.decimal_places:
+                raise ValidationError(self.error_messages['max_decimal_places'] % self.decimal_places)
+            if self.max_digits is not None and self.decimal_places is not None and whole_digits > (self.max_digits - self.decimal_places):
+                raise ValidationError(self.error_messages['max_whole_digits'] % (self.max_digits - self.decimal_places))
+        else:
+            digits = len(digittuple) + exponent
+            if self.max_digits is not None and digits > self.max_digits:
+                raise ValidationError(self.error_messages['max_digits'] % self.max_digits)
+
+
         return value
 
 class BaseTemporalField(Field):
