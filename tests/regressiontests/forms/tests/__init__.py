@@ -8,7 +8,7 @@ from media import *
 from models import *
 from regressions import *
 from util import *
-from validators import TestFieldWithValidators
+from validators import *
 from widgets import *
 
 from regressiontests.forms.localflavortests import (
